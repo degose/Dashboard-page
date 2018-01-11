@@ -1,0 +1,28 @@
+<template>
+  <div class="box">
+    <!-- <h3 class="section-sub-title">그래프</h3> -->
+    <line-chart :data="this.chartData"></line-chart>
+    <!-- <bar-chart :data="this.chartData"></bar-chart> -->
+    <!-- <line-chart :options="{responsive: false, maintainAspectRatio: false}"
+  :width="400"
+  :height="200"></line-chart> -->
+  </div>
+</template>
+
+<script>
+// import BarChart from '../charts/Bar.js'
+import LineChart from '../charts/Line.js'
+
+export default {
+  name: 'TotalSignedupChart',
+  components: {
+    LineChart
+    // BarChart
+  },
+  props: ['chartData']
+}
+</script>
+
+<style scoped>
+
+</style>
