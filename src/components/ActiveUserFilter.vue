@@ -38,7 +38,15 @@ export default {
   name: 'ActiveUserFilter',
   components: {
   },
-  props: ['filterData']
+  props: ['filterData'],
+  data () {
+    return {
+      selected: ''
+    }
+  },
+  created () {
+    console.log('select', this.selected)
+  }
 }
 </script>
 

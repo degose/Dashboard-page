@@ -10,14 +10,12 @@
 </template>
 
 <script>
-// import BarChart from '../charts/Bar.js'
 import LineChart from '../charts/Line.js'
 
 export default {
   name: 'TotalSignedupChart',
   components: {
     LineChart
-    // BarChart
   },
   props: ['chartData']
 }

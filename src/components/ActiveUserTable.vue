@@ -3,13 +3,10 @@
     <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
       <thead>
         <tr>
-          <th>날짜</th>
-          <th>DAU</th>
-          <th>WAU</th>
-          <th>MAU</th>
+          <th v-for="header in tableData.header">{{ header }}</th>
         </tr>
       </thead>
-      <tbody v-for="data in tableData">
+      <tbody v-for="data in tableData.data">
         <tr>
           <td>{{ data.date }}</td>
           <td>{{ data.DAU }}</td>

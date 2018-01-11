@@ -3,13 +3,10 @@
     <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
       <thead>
         <tr>
-          <th>날짜</th>
-          <th>가입자</th>
-          <th>탈퇴자</th>
-          <th>총 가입자</th>
+          <th v-for="header in tableData.header">{{ header }}</th>
         </tr>
       </thead>
-      <tbody v-for="data in tableData">
+      <tbody v-for="data in tableData.data">
         <tr>
           <td>{{ data.date }}</td>
           <td>{{ data.UserSignedupCount }}</td>
