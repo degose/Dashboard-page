@@ -18,6 +18,18 @@ export default {
     LineChart
   },
   props: ['chartData']
+  // mounted () {
+  //   this.$store.watch(
+  //     (state) => {
+  //       return this.$store.getters.isChartData
+  //     },
+  //     (val) => {
+  //     },
+  //     {
+  //       deep: true
+  //     }
+  //   )
+  // }
 }
 </script>
 

@@ -17,48 +17,15 @@ export default {
     TotalSignedupChart,
     TotalSignedupTable
   },
-  data () {
-    return {
-      // chartData: null
-    }
-  },
   created () {
     this.a_getTotalData()
-    // this.fetchChartData()
   },
   computed: {
-    ...mapGetters(['isTotalChartData', 'isTotalTableData', 'isChartData', 'isTableData'])
+    ...mapGetters(['isChartData', 'isTableData'])
   },
   methods: {
     ...mapActions(['a_getTotalData'])
-    // fetchChartData () {
-    //   this.chartData = {
-    //     labels: [...this.isTotalChartData.date],
-    //     datasets: [
-    //       {
-    //         label: '탈퇴자',
-    //         backgroundColor: 'rgba(255, 99, 132, 0.2)',
-    //         borderColor: 'rgba(255,99,132,1)',
-    //         borderWidth: 1,
-    //         data: [...this.isTotalChartData.UserDeletedCount]
-    //       },
-    //       {
-    //         label: '가입자',
-    //         backgroundColor: 'rgba(255, 206, 86, 0.2',
-    //         borderColor: 'rgba(255, 206, 86,1)',
-    //         borderWidth: 1,
-    //         data: [...this.isTotalChartData.UserSignedupCount]
-    //       },
-    //       {
-    //         label: '총 가입자',
-    //         backgroundColor: 'rgba(54, 162, 235, 0.2)',
-    //         borderColor: 'rgba(54, 162, 235,1)',
-    //         borderWidth: 1,
-    //         data: [...this.isTotalChartData.TotalUserCount]
-    //       }
-    //     ]
-    //   }
-    // }
+
   }
 }
 </script>
