@@ -9,10 +9,6 @@ export const store = new Vuex.Store({
   state: {
     ChartData: {},
     TableData: {},
-
-    TotalChartData: {},
-    TotalTableData: [],
-    ActiveChartData: {},
     ActiveTableData: []
   },
   getters: {
@@ -21,15 +17,6 @@ export const store = new Vuex.Store({
     },
     isTableData: (state) => {
       return state.TableData
-    },
-    isTotalChartData: (state) => {
-      return state.TotalChartData
-    },
-    isTotalTableData: (state) => {
-      return state.TotalTableData
-    },
-    isActiveChartData: (state) => {
-      return state.ActiveChartData
     },
     isActiveTableData: (state) => {
       return state.ActiveTableData
@@ -42,15 +29,6 @@ export const store = new Vuex.Store({
     m_TableData: (state, payload) => {
       state.TableData = payload
     },
-    m_TotalChartData: (state, payload) => {
-      state.TotalChartData = payload
-    },
-    m_TotalTableData: (state, payload) => {
-      state.TotalTableData = payload
-    },
-    m_ActiveChartData: (state, payload) => {
-      state.ActiveChartData = payload
-    },
     m_ActiveTableData: (state, payload) => {
       state.ActiveTableData = payload
     }
@@ -61,15 +39,6 @@ export const store = new Vuex.Store({
     },
     a_TableData: (context, val) => {
       context.commit('m_TableData', val)
-    },
-    a_TotalChartData: (context, val) => {
-      context.commit('m_TotalChartData', val)
-    },
-    a_TotalTableData: (context, val) => {
-      context.commit('m_TotalTableData', val)
-    },
-    a_ActiveChartData: (context, val) => {
-      context.commit('m_ActiveChartData', val)
     },
     a_ActiveTableData: (context, val) => {
       context.commit('m_ActiveTableData', val)
@@ -99,9 +68,9 @@ export const store = new Vuex.Store({
 
         tableDataSet.data.push({
           date: dataUserSignedup[i].key_as_string,
-          TotalUserCount: dataUserSignedup[i].doc_count - dataUserDeleted[i].doc_count,
           UserSignedupCount: dataUserSignedup[i].doc_count,
-          UserDeletedCount: dataUserDeleted[i].doc_count
+          UserDeletedCount: dataUserDeleted[i].doc_count,
+          TotalUserCount: dataUserSignedup[i].doc_count - dataUserDeleted[i].doc_count
         })
       }
 
@@ -135,7 +104,8 @@ export const store = new Vuex.Store({
       dispatch('a_TableData', tableDataSet)
     },
     a_getActiveData: ({dispatch}) => {
-      let dataDAU = require('../DB/daily-active-users.json').slice(7, this.length)
+      const dataDAU = require('../DB/daily-active-users.json').slice(7, this.length)
+      const allDataDAU = require('../DB/daily-active-users.json')
       const dataWAU = require('../DB/weekly-active-users.json')
       const dataMAU = require('../DB/monthly-active-users.json')
 
@@ -144,6 +114,7 @@ export const store = new Vuex.Store({
         datasets: []
       }
 
+      let changeDAU = []
       let DAU = []
       let WAU = []
       let MAU = []
@@ -151,6 +122,18 @@ export const store = new Vuex.Store({
       let tableDataSet = {
         header: [],
         data: []
+      }
+
+      let activeTableDataSet = []
+      let sumDAU = 0
+      let sumWAU = 0
+      let sumMAU = 0
+
+      // allDataDAU
+      for (let i = 0; i < allDataDAU.length; i++) {
+        if (allDataDAU[i - 7] !== null && allDataDAU[i - 7] !== undefined) {
+          changeDAU.push(allDataDAU[i].doc_count - allDataDAU[i - 7].doc_count)
+        }
       }
 
       for (let i = 0; i < dataMAU.length; i++) {
@@ -161,13 +144,25 @@ export const store = new Vuex.Store({
 
         tableDataSet.data.push({
           date: dataMAU[i].key,
+          changeDAU: changeDAU[i],
           DAU: dataDAU[i].doc_count,
           WAU: dataWAU[i].doc_count,
           MAU: dataMAU[i].doc_count
         })
+
+        sumDAU += DAU[i]
+        sumWAU += WAU[i]
+        sumMAU += MAU[i]
       }
 
       chartDataSet.datasets.push(
+        {
+          label: 'DAU 전주대비 변화',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
+          data: [...changeDAU]
+        },
         {
           label: 'DAU',
           backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -190,10 +185,44 @@ export const store = new Vuex.Store({
           data: [...MAU]
         }
       )
-      tableDataSet.header = ['날짜', 'DAU', 'WAU', 'MAU']
+
+      tableDataSet.header = ['날짜', 'DAU 전주대비 변화', 'DAU', 'WAU', 'MAU']
+
+      activeTableDataSet.push(
+        {
+          name: 'DAU',
+          min: Math.min(...DAU),
+          max: Math.max(...DAU),
+          avg: Math.floor(sumDAU / DAU.length)
+        },
+        {
+          name: 'WAU',
+          min: Math.min(...WAU),
+          max: Math.max(...WAU),
+          avg: Math.floor(sumWAU / WAU.length)
+        },
+        {
+          name: 'MAU',
+          min: Math.min(...MAU),
+          max: Math.max(...MAU),
+          avg: Math.floor(sumMAU / MAU.length)
+        }
+      )
 
       dispatch('a_ChartData', chartDataSet)
       dispatch('a_TableData', tableDataSet)
+      dispatch('a_ActiveTableData', activeTableDataSet)
+    },
+
+    // filter Action
+    a_DateChange: ({dispatch}) => {
+      // const data = ''
+    },
+    a_UserChange: ({dispatch}) => {
+      // const data = ''
+    },
+    a_CountryChange: ({dispatch}) => {
+      // const data = ''
     }
   }
 

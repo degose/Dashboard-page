@@ -8,10 +8,11 @@
       </thead>
       <tbody v-for="data in tableData.data">
         <tr>
-          <td>{{ data.date }}</td>
-          <td>{{ data.UserSignedupCount }}</td>
-          <td>{{ data.UserDeletedCount }}</td>
-          <td>{{ data.TotalUserCount }}</td>
+          <td v-for="list in data">{{ list }}</td>
+          <!-- <td>{{ data.date }}</td>
+          <td>{{ data.data1 }}</td>
+          <td>{{ data.data2 }}</td>
+          <td>{{ data.data3 }}</td> -->
         </tr>
       </tbody>
     </table>

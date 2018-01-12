@@ -1,18 +1,16 @@
 <template>
   <div class="container">
     <h2 class="section-title">활성화 사용자 지표</h2>
-    <!-- <bar-chart></bar-chart> -->
     <total-signedup-chart :chart-data="this.isChartData"></total-signedup-chart>
-    <active-user-filter :filter-data="this.isActiveChartData"></active-user-filter>
-    <active-user-table :table-data="this.isTableData"></active-user-table>
-    <!-- <active-user-chart></active-user-chart> -->
+    <active-user-filter :filter-data="this.isChartData"></active-user-filter>
+    <active-user-table :table-data="isActiveTableData"></active-user-table>
+    <total-signedup-table :table-data="this.isTableData"></total-signedup-table>
   </div>
 </template>
 
 <script>
-// import BarChart from './BarChart'
-// import ActiveUserChart from './ActiveUserChart'
 import TotalSignedupChart from './TotalSignedupChart'
+import TotalSignedupTable from './TotalSignedupTable'
 import ActiveUserFilter from './ActiveUserFilter'
 import ActiveUserTable from './ActiveUserTable'
 import { mapActions, mapGetters } from 'vuex'
@@ -20,9 +18,8 @@ import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'ActiveUserStatus',
   components: {
-    // BarChart,
-    // ActiveUserChart,
     TotalSignedupChart,
+    TotalSignedupTable,
     ActiveUserFilter,
     ActiveUserTable
   },
@@ -34,6 +31,7 @@ export default {
   created () {
     this.a_getActiveData()
     // this.fetchChartData()
+    // console.log(this.isChartData)
   },
   computed: {
     ...mapGetters(['isActiveChartData', 'isActiveTableData', 'isChartData', 'isTableData'])
