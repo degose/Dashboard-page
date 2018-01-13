@@ -15,7 +15,7 @@
           <div class="level-item">
             <div class="tabs is-toggle">
               <ul>
-                <li class="is-active" ref="tab_total">
+                <li ref="tab_total" autofocus active-class="is-active" exact>
                   <a class="tab-list" @click="(event) => {tabToggle(event)}">총 가입자 지표</a>
                 </li>
                 <li ref="tab_active">
@@ -42,9 +42,11 @@ export default {
   components: {
     TotalSignedupStatus
   },
-  data () {
-    return {
-      msg: 'Welcome to Your Vue.js App'
+  mounted () {
+    if (this.$route.path === '/' || this.$route.path === '') {
+      this.$refs.tab_total.classList.add('is-active')
+    } else {
+      this.$refs.tab_active.classList.add('is-active')
     }
   },
   methods: {

@@ -2,7 +2,7 @@
   <div class="container">
     <h2 class="section-title">활성화 사용자 지표</h2>
     <data-chart :chart-data="isChartData"></data-chart>
-    <active-user-filter :filter-data="isChartData" :filter-action="a_getActiveData"></active-user-filter>
+    <active-user-filter :filter-data="isDAU" :filter-action="a_getActiveData"></active-user-filter>
     <data-table :table-data="isActiveTableData"></data-table>
     <data-table :table-data="isTableData"></data-table>
   </div>
@@ -44,7 +44,7 @@ export default {
     // )
   },
   computed: {
-    ...mapGetters(['isActiveTableData', 'isChartData', 'isTableData'])
+    ...mapGetters(['isActiveTableData', 'isChartData', 'isTableData', 'isDAU'])
   },
   methods: {
     ...mapActions(['a_getActiveData'])

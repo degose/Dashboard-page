@@ -1,6 +1,6 @@
 <template>
   <div class="box">
-    <!-- <h3 class="section-sub-title">그래프</h3> -->
+    <h3 class="section-sub-title">{{ chartData.title }}</h3>
     <line-chart :data="this.chartData"></line-chart>
     <!-- <bar-chart :data="this.chartData"></bar-chart> -->
     <!-- <line-chart :options="{responsive: false, maintainAspectRatio: false}"
@@ -34,5 +34,8 @@ export default {
 </script>
 
 <style scoped>
-
+.section-sub-title {
+  text-align: center;
+  font-weight: 600;
+}
 </style>

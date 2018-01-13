@@ -10,7 +10,7 @@ export const store = new Vuex.Store({
     ActiveTableData: [],
 
     DAU: [],
-    allDAU: [],
+    // allDAU: [],
     changeDAU: [],
     WAU: [],
     MAU: []
@@ -29,9 +29,9 @@ export const store = new Vuex.Store({
     isDAU: (state) => {
       return state.DAU
     },
-    isAllDAU: (state) => {
-      return state.allDAU
-    },
+    // isAllDAU: (state) => {
+    //   return state.allDAU
+    // },
     isChangeDAU: (state) => {
       return state.changeDAU
     },
@@ -56,9 +56,9 @@ export const store = new Vuex.Store({
     m_DAU: (state, payload) => {
       state.DAU = payload
     },
-    m_AllDAU: (state, payload) => {
-      state.allDAU = payload
-    },
+    // m_AllDAU: (state, payload) => {
+    //   state.allDAU = payload
+    // },
     m_changeDAU: (state, payload) => {
       state.changeDAU = payload
     },
@@ -83,9 +83,9 @@ export const store = new Vuex.Store({
     a_DAU: (context, val) => {
       context.commit('m_DAU', val)
     },
-    a_AllDAU: (context, val) => {
-      context.commit('m_AllDAU', val)
-    },
+    // a_AllDAU: (context, val) => {
+    //   context.commit('m_AllDAU', val)
+    // },
     a_changeDAU: (context, val) => {
       context.commit('m_changeDAU', val)
     },
@@ -98,6 +98,7 @@ export const store = new Vuex.Store({
 
     a_makeTotalChartTable: ({dispatch}, val) => {
       let chartDataSet = {
+        title: '총 가입자 지표',
         labels: [],
         datasets: []
       }
@@ -106,7 +107,7 @@ export const store = new Vuex.Store({
       let UserDeletedCount = []
 
       let tableDataSet = {
-        header: [],
+        header: ['날짜', '가입자', '탈퇴자', '총 가입자'],
         data: []
       }
 
@@ -148,14 +149,13 @@ export const store = new Vuex.Store({
         }
       )
 
-      tableDataSet.header = ['날짜', '가입자', '탈퇴자', '총 가입자']
-
       dispatch('a_ChartData', chartDataSet)
       dispatch('a_TableData', tableDataSet)
     },
     a_makeActiveChartTable: ({state, dispatch}, val) => {
       // console.log('a_makeActiveChartTable', val)
       let chartDataSet = {
+        title: `${val.title}` + 'MAU, WAU, MAU 지표',
         labels: [],
         datasets: []
       }
@@ -165,12 +165,12 @@ export const store = new Vuex.Store({
       let MAU = []
 
       let tableDataSet = {
-        header: [],
+        header: ['날짜', 'DAU 전주대비 변화', 'DAU', 'WAU', 'MAU'],
         data: []
       }
 
       let activeTableDataSet = {
-        header: [],
+        header: ['기준', '최대', '최소', '평균'],
         data: []
       }
 
@@ -179,13 +179,13 @@ export const store = new Vuex.Store({
       let sumMAU = 0
 
       for (let i = 0; i < val.dataMAU.length; i++) {
-        chartDataSet.labels.push(val.dataMAU[i].key)
+        chartDataSet.labels.push(val.dataMAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3'))
         DAU.push(val.dataDAU[i].doc_count)
         WAU.push(val.dataWAU[i].doc_count)
         MAU.push(val.dataMAU[i].doc_count)
 
         tableDataSet.data.push({
-          date: val.dataMAU[i].key,
+          date: val.dataMAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3'),
           changeDAU: val.changeDAU[i],
           DAU: val.dataDAU[i].doc_count,
           WAU: val.dataWAU[i].doc_count,
@@ -228,9 +228,6 @@ export const store = new Vuex.Store({
         }
       )
 
-      tableDataSet.header = ['날짜', 'DAU 전주대비 변화', 'DAU', 'WAU', 'MAU']
-
-      activeTableDataSet.header = ['기준', '최대', '최소', '평균']
       activeTableDataSet.data.push(
         {
           name: 'DAU',
@@ -280,6 +277,7 @@ export const store = new Vuex.Store({
       }
 
       dispatch('a_makeActiveChartTable', {
+        title: '',
         dataDAU: dataDAU,
         changeDAU: changeDAU,
         dataWAU: dataWAU,
@@ -287,7 +285,7 @@ export const store = new Vuex.Store({
       })
 
       dispatch('a_DAU', dataDAU)
-      dispatch('a_AllDAU', allDataDAU)
+      // dispatch('a_AllDAU', allDataDAU)
       dispatch('a_changeDAU', changeDAU)
       dispatch('a_WAU', dataWAU)
       dispatch('a_MAU', dataMAU)
@@ -295,12 +293,16 @@ export const store = new Vuex.Store({
 
     // filter Action
     a_changeData: ({state, dispatch}, val) => {
-      console.log('연결', val)
-
+      console.log('뷰엑스 왔다', val)
       if (val.select_user === '' && val.select_country === '') {
         dispatch('a_DateChange', {
+          title: '',
           input_start_date: val.input_start_date,
-          input_end_date: val.input_end_date
+          input_end_date: val.input_end_date,
+          DAU: state.DAU,
+          changeDAU: state.changeDAU,
+          WAU: state.WAU,
+          MAU: state.MAU
         })
       } else if (val.select_user !== '') {
         // country 조건을 초기화 시켜야 함
@@ -319,7 +321,6 @@ export const store = new Vuex.Store({
     },
 
     a_DateChange: ({state, dispatch}, val) => {
-      // console.log('a_DateChange', val)
       let sliceDAU = []
       let sliceChangeDAU = []
       let sliceWAU = []
@@ -327,32 +328,33 @@ export const store = new Vuex.Store({
       let startIndex = ''
       let endIndex = ''
 
-      for (let i = 0; i < state.DAU.length; i++) {
-        if (state.DAU[i].key === val.input_start_date.split('-').join('')) {
+      for (let i = 0; i < val.DAU.length; i++) {
+        if (val.DAU[i].key === val.input_start_date.split('-').join('')) {
           startIndex = i
         }
-        if (state.DAU[i].key === val.input_end_date.split('-').join('')) {
+        if (val.DAU[i].key === val.input_end_date.split('-').join('')) {
           endIndex = i + 1
         }
       }
       if (endIndex === '') {
-        sliceDAU.push(...state.DAU.slice(startIndex))
-        sliceChangeDAU.push(...state.changeDAU.slice(startIndex))
-        sliceWAU.push(...state.WAU.slice(startIndex))
-        sliceMAU.push(...state.MAU.slice(startIndex))
+        sliceDAU.push(...val.DAU.slice(startIndex))
+        sliceChangeDAU.push(...val.changeDAU.slice(startIndex))
+        sliceWAU.push(...val.WAU.slice(startIndex))
+        sliceMAU.push(...val.MAU.slice(startIndex))
       } else if (startIndex === '') {
-        sliceDAU.push(...state.DAU.slice(0, endIndex))
-        sliceChangeDAU.push(...state.changeDAU.slice(0, endIndex))
-        sliceWAU.push(...state.WAU.slice(0, endIndex))
-        sliceMAU.push(...state.MAU.slice(0, endIndex))
+        sliceDAU.push(...val.DAU.slice(0, endIndex))
+        sliceChangeDAU.push(...val.changeDAU.slice(0, endIndex))
+        sliceWAU.push(...val.WAU.slice(0, endIndex))
+        sliceMAU.push(...val.MAU.slice(0, endIndex))
       } else {
-        sliceDAU.push(...state.DAU.slice(startIndex, endIndex))
-        sliceChangeDAU.push(...state.changeDAU.slice(startIndex, endIndex))
-        sliceWAU.push(...state.WAU.slice(startIndex, endIndex))
-        sliceMAU.push(...state.MAU.slice(startIndex, endIndex))
+        sliceDAU.push(...val.DAU.slice(startIndex, endIndex))
+        sliceChangeDAU.push(...val.changeDAU.slice(startIndex, endIndex))
+        sliceWAU.push(...val.WAU.slice(startIndex, endIndex))
+        sliceMAU.push(...val.MAU.slice(startIndex, endIndex))
       }
 
       dispatch('a_makeActiveChartTable', {
+        title: val.title,
         dataDAU: sliceDAU,
         changeDAU: sliceChangeDAU,
         dataWAU: sliceWAU,
@@ -360,90 +362,154 @@ export const store = new Vuex.Store({
       })
     },
     a_UserChange: ({dispatch}, val) => {
-      let dataDAUparent = require('../DB/dau_parent.json')
-      let dataDAUstudent = require('../DB/dau_student.json')
-      let dataDAUteacher = require('../DB/dau_teacher.json')
-      let dataWAUparent = require('../DB/wau_parent.json')
-      let dataWAUstudent = require('../DB/wau_student.json')
-      let dataWAUteacher = require('../DB/wau_teacher.json')
-      let dataMAUparent = require('../DB/mau_parent.json')
-      let dataMAUstudent = require('../DB/mau_student.json')
-      let dataMAUteacher = require('../DB/mau_teacher.json')
-
-      let changeDAU = []
-
       if (val.select_user === 'Parent') {
+        let dataDAUparent = require('../DB/dau_parent.json')
+        let dataWAUparent = require('../DB/wau_parent.json')
+        let dataMAUparent = require('../DB/mau_parent.json')
+        let changeDAU = []
         for (let i = 0; i < dataDAUparent.length; i++) {
           if (dataDAUparent[i - 7] !== null && dataDAUparent[i - 7] !== undefined) {
             changeDAU.push(dataDAUparent[i].doc_count - dataDAUparent[i - 7].doc_count)
           }
         }
-        dispatch('a_makeActiveChartTable', {
-          dataDAU: dataDAUparent.slice(7, this.length),
-          changeDAU: changeDAU,
-          dataWAU: dataWAUparent,
-          dataMAU: dataMAUparent
-        })
+        if (val.input_start_date === '' && val.input_end_date === '') {
+          dispatch('a_makeActiveChartTable', {
+            title: 'Parent ',
+            dataDAU: dataDAUparent.slice(7, this.length),
+            changeDAU: changeDAU,
+            dataWAU: dataWAUparent,
+            dataMAU: dataMAUparent
+          })
+        } else {
+          dispatch('a_DateChange', {
+            title: 'Parent ',
+            input_start_date: val.input_start_date,
+            input_end_date: val.input_end_date,
+            DAU: dataDAUparent.slice(7, this.length),
+            changeDAU: changeDAU,
+            WAU: dataWAUparent,
+            MAU: dataMAUparent
+          })
+        }
       } else if (val.select_user === 'Student') {
+        let dataDAUstudent = require('../DB/dau_student.json')
+        let dataWAUstudent = require('../DB/wau_student.json')
+        let dataMAUstudent = require('../DB/mau_student.json')
+        let changeDAU = []
         for (let i = 0; i < dataDAUstudent.length; i++) {
           if (dataDAUstudent[i - 7] !== null && dataDAUstudent[i - 7] !== undefined) {
             changeDAU.push(dataDAUstudent[i].doc_count - dataDAUstudent[i - 7].doc_count)
           }
         }
-        dispatch('a_makeActiveChartTable', {
-          dataDAU: dataDAUstudent.slice(7, this.length),
-          changeDAU: changeDAU,
-          dataWAU: dataWAUstudent,
-          dataMAU: dataMAUstudent
-        })
+        if (val.input_start_date === '' && val.input_end_date === '') {
+          dispatch('a_makeActiveChartTable', {
+            title: 'Student ',
+            dataDAU: dataDAUstudent.slice(7, this.length),
+            changeDAU: changeDAU,
+            dataWAU: dataWAUstudent,
+            dataMAU: dataMAUstudent
+          })
+        } else {
+          dispatch('a_DateChange', {
+            title: 'Student ',
+            input_start_date: val.input_start_date,
+            input_end_date: val.input_end_date,
+            DAU: dataDAUstudent.slice(7, this.length),
+            changeDAU: changeDAU,
+            WAU: dataWAUstudent,
+            MAU: dataMAUstudent
+          })
+        }
       } else {
+        let dataDAUteacher = require('../DB/dau_teacher.json')
+        let dataWAUteacher = require('../DB/wau_teacher.json')
+        let dataMAUteacher = require('../DB/mau_teacher.json')
+        let changeDAU = []
         for (let i = 0; i < dataDAUteacher.length; i++) {
           if (dataDAUteacher[i - 7] !== null && dataDAUteacher[i - 7] !== undefined) {
             changeDAU.push(dataDAUteacher[i].doc_count - dataDAUteacher[i - 7].doc_count)
           }
         }
-        dispatch('a_makeActiveChartTable', {
-          dataDAU: dataDAUteacher.slice(7, this.length),
-          changeDAU: changeDAU,
-          dataWAU: dataWAUteacher,
-          dataMAU: dataMAUteacher
-        })
+        if (val.input_start_date === '' && val.input_end_date === '') {
+          dispatch('a_makeActiveChartTable', {
+            title: 'Teacher ',
+            dataDAU: dataDAUteacher.slice(7, this.length),
+            changeDAU: changeDAU,
+            dataWAU: dataWAUteacher,
+            dataMAU: dataMAUteacher
+          })
+        } else {
+          dispatch('a_DateChange', {
+            title: 'Teacher ',
+            input_start_date: val.input_start_date,
+            input_end_date: val.input_end_date,
+            DAU: dataDAUteacher.slice(7, this.length),
+            changeDAU: changeDAU,
+            WAU: dataWAUteacher,
+            MAU: dataMAUteacher
+          })
+        }
       }
     },
     a_CountryChange: ({dispatch}, val) => {
-      let dataDAUjapan = require('../DB/dau_japan.json')
-      let dataDAUkorea = require('../DB/dau_korea.json')
-      let dataWAUjapan = require('../DB/wau_japan.json')
-      let dataWAUkorea = require('../DB/wau_korea.json')
-      let dataMAUjapan = require('../DB/mau_japan.json')
-      let dataMAUkorea = require('../DB/mau_korea.json')
-
-      let changeDAU = []
-
       if (val.select_user === 'Japan') {
+        let dataDAUjapan = require('../DB/dau_japan.json')
+        let dataWAUjapan = require('../DB/wau_japan.json')
+        let dataMAUjapan = require('../DB/mau_japan.json')
+        let changeDAU = []
         for (let i = 0; i < dataDAUjapan.length; i++) {
           if (dataDAUjapan[i - 7] !== null && dataDAUjapan[i - 7] !== undefined) {
             changeDAU.push(dataDAUjapan[i].doc_count - dataDAUjapan[i - 7].doc_count)
           }
         }
-        dispatch('a_makeActiveChartTable', {
-          dataDAU: dataDAUjapan.slice(7, this.length),
-          changeDAU: changeDAU,
-          dataWAU: dataWAUjapan,
-          dataMAU: dataMAUjapan
-        })
+        if (val.input_start_date === '' && val.input_end_date === '') {
+          dispatch('a_makeActiveChartTable', {
+            title: 'Japan ',
+            dataDAU: dataDAUjapan.slice(7, this.length),
+            changeDAU: changeDAU,
+            dataWAU: dataWAUjapan,
+            dataMAU: dataMAUjapan
+          })
+        } else {
+          dispatch('a_DateChange', {
+            title: 'Japan ',
+            input_start_date: val.input_start_date,
+            input_end_date: val.input_end_date,
+            DAU: dataDAUjapan.slice(7, this.length),
+            changeDAU: changeDAU,
+            WAU: dataWAUjapan,
+            MAU: dataMAUjapan
+          })
+        }
       } else if (val.select_user === 'Korea') {
+        let dataDAUkorea = require('../DB/dau_korea.json')
+        let dataWAUkorea = require('../DB/wau_korea.json')
+        let dataMAUkorea = require('../DB/mau_korea.json')
+        let changeDAU = []
         for (let i = 0; i < dataDAUkorea.length; i++) {
           if (dataDAUkorea[i - 7] !== null && dataDAUkorea[i - 7] !== undefined) {
             changeDAU.push(dataDAUkorea[i].doc_count - dataDAUkorea[i - 7].doc_count)
           }
         }
-        dispatch('a_makeActiveChartTable', {
-          dataDAU: dataDAUkorea.slice(7, this.length),
-          changeDAU: changeDAU,
-          dataWAU: dataWAUkorea,
-          dataMAU: dataMAUkorea
-        })
+        if (val.input_start_date === '' && val.input_end_date === '') {
+          dispatch('a_makeActiveChartTable', {
+            title: 'Korea ',
+            dataDAU: dataDAUkorea.slice(7, this.length),
+            changeDAU: changeDAU,
+            dataWAU: dataWAUkorea,
+            dataMAU: dataMAUkorea
+          })
+        } else {
+          dispatch('a_DateChange', {
+            title: 'Korea ',
+            input_start_date: val.input_start_date,
+            input_end_date: val.input_end_date,
+            DAU: dataDAUkorea.slice(7, this.length),
+            changeDAU: changeDAU,
+            WAU: dataWAUkorea,
+            MAU: dataMAUkorea
+          })
+        }
       }
     }
   }
