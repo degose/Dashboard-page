@@ -30,17 +30,20 @@
     <section class="main-container">
       <router-view></router-view>
     </section>
+    <notification></notification>
 
   </div>
 </template>
 
 <script>
 import TotalSignedupStatus from './TotalSignedupStatus'
+import Notification from './Notification'
 
 export default {
   name: 'Home',
   components: {
-    TotalSignedupStatus
+    TotalSignedupStatus,
+    Notification
   },
   mounted () {
     if (this.$route.path === '/' || this.$route.path === '') {

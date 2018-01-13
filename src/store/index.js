@@ -9,8 +9,9 @@ export const store = new Vuex.Store({
     TableData: {},
     ActiveTableData: [],
 
+    NotiMessage: '',
+
     DAU: [],
-    // allDAU: [],
     changeDAU: [],
     WAU: [],
     MAU: []
@@ -26,12 +27,13 @@ export const store = new Vuex.Store({
       return state.ActiveTableData
     },
 
+    isNotiMessage: (state) => {
+      return state.NotiMessage
+    },
+
     isDAU: (state) => {
       return state.DAU
     },
-    // isAllDAU: (state) => {
-    //   return state.allDAU
-    // },
     isChangeDAU: (state) => {
       return state.changeDAU
     },
@@ -53,12 +55,13 @@ export const store = new Vuex.Store({
       state.ActiveTableData = payload
     },
 
+    m_NotiMessage: (state, payload) => {
+      state.NotiMessage = payload
+    },
+
     m_DAU: (state, payload) => {
       state.DAU = payload
     },
-    // m_AllDAU: (state, payload) => {
-    //   state.allDAU = payload
-    // },
     m_changeDAU: (state, payload) => {
       state.changeDAU = payload
     },
@@ -80,12 +83,13 @@ export const store = new Vuex.Store({
       context.commit('m_ActiveTableData', val)
     },
 
+    a_NotiMessage: (context, val) => {
+      context.commit('m_NotiMessage', val)
+    },
+
     a_DAU: (context, val) => {
       context.commit('m_DAU', val)
     },
-    // a_AllDAU: (context, val) => {
-    //   context.commit('m_AllDAU', val)
-    // },
     a_changeDAU: (context, val) => {
       context.commit('m_changeDAU', val)
     },

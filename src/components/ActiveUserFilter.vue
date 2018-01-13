@@ -9,20 +9,20 @@
           <div class="field-body">
             <div class="field">
               <p class="control">
-                <input class="input" type="date" name="bday" :min="startMonth" :max="endMonth" v-model="input_start_date" @change="(event) => {filterValue(event)}">
+                <input class="input" type="date" name="bday" :min="startMonth" :max="endMonth" v-model="input_start_date" @change="() => {filterValue()}">
               </p>
             </div>
           </div>
           <div class="field">
             <p class="control">
-              <input class="input" type="date" name="bday" :min="startMonth" :max="endMonth" v-model="input_end_date" @change="(event) => {filterValue(event)}">
+              <input class="input" type="date" name="bday" :min="startMonth" :max="endMonth" v-model="input_end_date" @change="() => {filterValue()}">
             </p>
           </div>
         </div>
       </div>
       <div class="level-item">
         <div class="select">
-          <select v-model="select_user" @change="(event) => {filterValue(event)}">
+          <select v-model="select_user" @change="() => {filterValue()}">
             <option disabled value="">User</option>
             <option>Parent</option>
             <option>Student</option>
@@ -32,7 +32,7 @@
       </div>
       <div class="level-item">
         <div class="select">
-          <select v-model="select_country" @change="(event) => {filterValue(event)}">
+          <select v-model="select_country" @change="() => {filterValue()}">
             <option disabled value="">Country</option>
             <option>Korea</option>
             <option>Japan</option>
@@ -69,24 +69,24 @@ export default {
     this.endMonth = this.filterData[this.filterData.length - 1].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
   },
   methods: {
-    ...mapActions(['a_changeData']),
-    filterValue (e) {
+    ...mapActions(['a_changeData', 'a_NotiMessage']),
+    filterValue () {
       if (this.input_end_date !== '' && this.input_start_date > this.input_end_date) {
-        alert('시작 날짜가 종료 날짜보다 큽니다.')
+        this.$store.dispatch('a_NotiMessage', '시작 날짜가 종료 날짜보다 큽니다.')
         this.input_end_date = ''
       } else if (this.input_end_date !== '' && this.input_start_date === this.input_end_date) {
-        alert('시작 날짜와 종료 날짜가 같습니다.')
+        this.$store.dispatch('a_NotiMessage', '시작 날짜와 종료 날짜가 같습니다.')
         this.input_end_date = ''
       }
       if (this.input_start_date !== '') {
         if (this.input_start_date.split('-').join('') < this.filterData[0].key || this.input_start_date.split('-').join('') > this.filterData[this.filterData.length - 1].key) {
-          alert('해당 날짜는 데이터가 없습니다.')
+          this.$store.dispatch('a_NotiMessage', '해당 날짜는 데이터가 없습니다.')
           this.input_start_date = ''
         }
       }
       if (this.input_end_date !== '') {
         if (this.input_end_date.split('-').join('') < this.filterData[0].key || this.input_end_date.split('-').join('') > this.filterData[this.filterData.length - 1].key) {
-          alert('해당 날짜는 데이터가 없습니다.')
+          this.$store.dispatch('a_NotiMessage', '해당 날짜는 데이터가 없습니다.')
           this.input_end_date = ''
         }
       }
