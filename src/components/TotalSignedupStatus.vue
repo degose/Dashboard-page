@@ -1,21 +1,21 @@
 <template>
   <div class="container">
     <h2 class="section-title">총 가입자 지표</h2>
-    <total-signedup-chart :chart-data="this.isChartData"></total-signedup-chart>
-    <total-signedup-table :table-data="this.isTableData"></total-signedup-table>
+    <data-chart :chart-data="this.isChartData"></data-chart>
+    <data-table :table-data="this.isTableData"></data-table>
   </div>
 </template>
 
 <script>
-import TotalSignedupChart from './TotalSignedupChart'
-import TotalSignedupTable from './TotalSignedupTable'
+import DataChart from './Chart'
+import DataTable from './Table'
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'TotalSignedupStatus',
   components: {
-    TotalSignedupChart,
-    TotalSignedupTable
+    DataChart,
+    DataTable
   },
   created () {
     this.a_getTotalData()

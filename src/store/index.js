@@ -169,7 +169,11 @@ export const store = new Vuex.Store({
         data: []
       }
 
-      let activeTableDataSet = []
+      let activeTableDataSet = {
+        header: [],
+        data: []
+      }
+
       let sumDAU = 0
       let sumWAU = 0
       let sumMAU = 0
@@ -226,7 +230,8 @@ export const store = new Vuex.Store({
 
       tableDataSet.header = ['날짜', 'DAU 전주대비 변화', 'DAU', 'WAU', 'MAU']
 
-      activeTableDataSet.push(
+      activeTableDataSet.header = ['기준', '최대', '최소', '평균']
+      activeTableDataSet.data.push(
         {
           name: 'DAU',
           min: Math.min(...DAU),
@@ -291,9 +296,6 @@ export const store = new Vuex.Store({
     // filter Action
     a_changeData: ({state, dispatch}, val) => {
       console.log('연결', val)
-      // let dataDAUparent = require('../DB/dau_parent.json')
-      // let dataDAUstudent = require('../DB/dau_student.json')
-      // let dataDAUteacher = require('../DB/dau_teacher.json')
 
       if (val.select_user === '' && val.select_country === '') {
         dispatch('a_DateChange', {
@@ -301,10 +303,17 @@ export const store = new Vuex.Store({
           input_end_date: val.input_end_date
         })
       } else if (val.select_user !== '') {
+        // country 조건을 초기화 시켜야 함
         dispatch('a_UserChange', {
           input_start_date: val.input_start_date,
           input_end_date: val.input_end_date,
           select_user: val.select_user
+        })
+      } else if (val.select_country !== '') {
+        dispatch('a_CountryChange', {
+          input_start_date: val.input_start_date,
+          input_end_date: val.input_end_date,
+          select_user: val.select_country
         })
       }
     },
@@ -363,13 +372,12 @@ export const store = new Vuex.Store({
 
       let changeDAU = []
 
-      for (let i = 0; i < dataDAUparent.length; i++) {
-        if (dataDAUparent[i - 7] !== null && dataDAUparent[i - 7] !== undefined) {
-          changeDAU.push(dataDAUparent[i].doc_count - dataDAUparent[i - 7].doc_count)
-        }
-      }
-
       if (val.select_user === 'Parent') {
+        for (let i = 0; i < dataDAUparent.length; i++) {
+          if (dataDAUparent[i - 7] !== null && dataDAUparent[i - 7] !== undefined) {
+            changeDAU.push(dataDAUparent[i].doc_count - dataDAUparent[i - 7].doc_count)
+          }
+        }
         dispatch('a_makeActiveChartTable', {
           dataDAU: dataDAUparent.slice(7, this.length),
           changeDAU: changeDAU,
@@ -377,6 +385,11 @@ export const store = new Vuex.Store({
           dataMAU: dataMAUparent
         })
       } else if (val.select_user === 'Student') {
+        for (let i = 0; i < dataDAUstudent.length; i++) {
+          if (dataDAUstudent[i - 7] !== null && dataDAUstudent[i - 7] !== undefined) {
+            changeDAU.push(dataDAUstudent[i].doc_count - dataDAUstudent[i - 7].doc_count)
+          }
+        }
         dispatch('a_makeActiveChartTable', {
           dataDAU: dataDAUstudent.slice(7, this.length),
           changeDAU: changeDAU,
@@ -384,6 +397,11 @@ export const store = new Vuex.Store({
           dataMAU: dataMAUstudent
         })
       } else {
+        for (let i = 0; i < dataDAUteacher.length; i++) {
+          if (dataDAUteacher[i - 7] !== null && dataDAUteacher[i - 7] !== undefined) {
+            changeDAU.push(dataDAUteacher[i].doc_count - dataDAUteacher[i - 7].doc_count)
+          }
+        }
         dispatch('a_makeActiveChartTable', {
           dataDAU: dataDAUteacher.slice(7, this.length),
           changeDAU: changeDAU,
@@ -393,7 +411,40 @@ export const store = new Vuex.Store({
       }
     },
     a_CountryChange: ({dispatch}, val) => {
-      // const data = ''
+      let dataDAUjapan = require('../DB/dau_japan.json')
+      let dataDAUkorea = require('../DB/dau_korea.json')
+      let dataWAUjapan = require('../DB/wau_japan.json')
+      let dataWAUkorea = require('../DB/wau_korea.json')
+      let dataMAUjapan = require('../DB/mau_japan.json')
+      let dataMAUkorea = require('../DB/mau_korea.json')
+
+      let changeDAU = []
+
+      if (val.select_user === 'Japan') {
+        for (let i = 0; i < dataDAUjapan.length; i++) {
+          if (dataDAUjapan[i - 7] !== null && dataDAUjapan[i - 7] !== undefined) {
+            changeDAU.push(dataDAUjapan[i].doc_count - dataDAUjapan[i - 7].doc_count)
+          }
+        }
+        dispatch('a_makeActiveChartTable', {
+          dataDAU: dataDAUjapan.slice(7, this.length),
+          changeDAU: changeDAU,
+          dataWAU: dataWAUjapan,
+          dataMAU: dataMAUjapan
+        })
+      } else if (val.select_user === 'Korea') {
+        for (let i = 0; i < dataDAUkorea.length; i++) {
+          if (dataDAUkorea[i - 7] !== null && dataDAUkorea[i - 7] !== undefined) {
+            changeDAU.push(dataDAUkorea[i].doc_count - dataDAUkorea[i - 7].doc_count)
+          }
+        }
+        dispatch('a_makeActiveChartTable', {
+          dataDAU: dataDAUkorea.slice(7, this.length),
+          changeDAU: changeDAU,
+          dataWAU: dataWAUkorea,
+          dataMAU: dataMAUkorea
+        })
+      }
     }
   }
 

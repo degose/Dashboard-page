@@ -1,27 +1,25 @@
 <template>
   <div class="container">
     <h2 class="section-title">활성화 사용자 지표</h2>
-    <total-signedup-chart :chart-data="this.isChartData"></total-signedup-chart>
-    <active-user-filter :filter-data="this.isChartData" :filter-action="this.a_getActiveData"></active-user-filter>
-    <active-user-table :table-data="isActiveTableData"></active-user-table>
-    <total-signedup-table :table-data="this.isTableData"></total-signedup-table>
+    <data-chart :chart-data="isChartData"></data-chart>
+    <active-user-filter :filter-data="isChartData" :filter-action="a_getActiveData"></active-user-filter>
+    <data-table :table-data="isActiveTableData"></data-table>
+    <data-table :table-data="isTableData"></data-table>
   </div>
 </template>
 
 <script>
-import TotalSignedupChart from './TotalSignedupChart'
-import TotalSignedupTable from './TotalSignedupTable'
+import DataChart from './Chart'
+import DataTable from './Table'
 import ActiveUserFilter from './ActiveUserFilter'
-import ActiveUserTable from './ActiveUserTable'
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'ActiveUserStatus',
   components: {
-    TotalSignedupChart,
-    TotalSignedupTable,
-    ActiveUserFilter,
-    ActiveUserTable
+    DataChart,
+    DataTable,
+    ActiveUserFilter
   },
   data () {
     return {
@@ -34,16 +32,16 @@ export default {
     // console.log(this.isChartData)
   },
   mounted () {
-    this.$store.watch(
-      (state) => {
-        return this.$store.getters.isChartData
-      },
-      (val) => {
-      },
-      {
-        deep: true
-      }
-    )
+    // this.$store.watch(
+    //   (state) => {
+    //     return this.$store.getters.isChartData
+    //   },
+    //   (val) => {
+    //   },
+    //   {
+    //     deep: true
+    //   }
+    // )
   },
   computed: {
     ...mapGetters(['isActiveTableData', 'isChartData', 'isTableData'])

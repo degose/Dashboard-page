@@ -13,7 +13,7 @@
 import LineChart from '../charts/Line.js'
 
 export default {
-  name: 'TotalSignedupChart',
+  name: 'Chart',
   components: {
     LineChart
   },

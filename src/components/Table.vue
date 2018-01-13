@@ -3,18 +3,16 @@
     <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
       <thead>
         <tr>
-          <th>기준</th>
-          <th>최대</th>
-          <th>최소</th>
-          <th>평균</th>
+          <th v-for="header in tableData.header">{{ header }}</th>
         </tr>
       </thead>
-      <tbody>
-        <tr v-for="data in tableData">
-          <td>{{ data.name }}</td>
-          <td>{{ data.max }}</td>
-          <td>{{ data.min }}</td>
-          <td>{{ data.avg }}</td>
+      <tbody v-for="data in tableData.data">
+        <tr>
+          <td v-for="list in data">{{ list }}</td>
+          <!-- <td>{{ data.date }}</td>
+          <td>{{ data.data1 }}</td>
+          <td>{{ data.data2 }}</td>
+          <td>{{ data.data3 }}</td> -->
         </tr>
       </tbody>
     </table>
@@ -24,7 +22,7 @@
 <script>
 
 export default {
-  name: 'ActiveUserTable',
+  name: 'Table',
   props: ['tableData']
 }
 </script>
