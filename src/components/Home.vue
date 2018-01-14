@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <header>
-      <nav class="level navbar is-dark nav-control">
+      <nav class="level navbar is-dark bg-control">
         <div class="level-left">
           <div class="level-item">
             <a href="/">
@@ -27,7 +27,7 @@
         </div>
       </nav>
     </header>
-    <section class="main-container">
+    <section>
       <router-view></router-view>
     </section>
     <notification></notification>
@@ -73,9 +73,9 @@ export default {
 </script>
 
 <style scoped>
-.nav-control {
+/* .control {
   padding: 10px 10%;
-}
+} */
 
 .header-title {
   font-size: 1.2rem;

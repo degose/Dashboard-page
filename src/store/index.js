@@ -8,7 +8,6 @@ export const store = new Vuex.Store({
     ChartData: {},
     TableData: {},
     ActiveTableData: [],
-
     NotiMessage: '',
 
     DAU: [],
@@ -26,22 +25,11 @@ export const store = new Vuex.Store({
     isActiveTableData: (state) => {
       return state.ActiveTableData
     },
-
     isNotiMessage: (state) => {
       return state.NotiMessage
     },
-
     isDAU: (state) => {
       return state.DAU
-    },
-    isChangeDAU: (state) => {
-      return state.changeDAU
-    },
-    isWAU: (state) => {
-      return state.WAU
-    },
-    isMAU: (state) => {
-      return state.MAU
     }
   },
   mutations: {
@@ -54,11 +42,9 @@ export const store = new Vuex.Store({
     m_ActiveTableData: (state, payload) => {
       state.ActiveTableData = payload
     },
-
     m_NotiMessage: (state, payload) => {
       state.NotiMessage = payload
     },
-
     m_DAU: (state, payload) => {
       state.DAU = payload
     },
@@ -73,33 +59,70 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
-    a_ChartData: (context, val) => {
-      context.commit('m_ChartData', val)
+    // state 값 변경을 위한 action
+    a_ChartData: ({commit}, val) => {
+      commit('m_ChartData', val)
     },
-    a_TableData: (context, val) => {
-      context.commit('m_TableData', val)
+    a_TableData: ({commit}, val) => {
+      commit('m_TableData', val)
     },
-    a_ActiveTableData: (context, val) => {
-      context.commit('m_ActiveTableData', val)
+    a_ActiveTableData: ({commit}, val) => {
+      commit('m_ActiveTableData', val)
+    },
+    a_NotiMessage: ({commit}, val) => {
+      commit('m_NotiMessage', val)
+    },
+    a_DAU: ({commit}, val) => {
+      commit('m_DAU', val)
+    },
+    a_changeDAU: ({commit}, val) => {
+      commit('m_changeDAU', val)
+    },
+    a_WAU: ({commit}, val) => {
+      commit('m_WAU', val)
+    },
+    a_MAU: ({commit}, val) => {
+      commit('m_MAU', val)
     },
 
-    a_NotiMessage: (context, val) => {
-      context.commit('m_NotiMessage', val)
+    // 초기 data 가져오는 action
+    a_getTotalData: ({dispatch}) => {
+      const dataUserSignedup = require('../DB/user_signedup.json')
+      const dataUserDeleted = require('../DB/user_deleted.json')
+
+      dispatch('a_makeTotalChartTable', {
+        dataUserSignedup: dataUserSignedup,
+        dataUserDeleted: dataUserDeleted
+      })
+    },
+    a_getActiveData: ({dispatch, commit}) => {
+      const dataDAU = require('../DB/daily-active-users.json').slice(7, this.length)
+      const allDataDAU = require('../DB/daily-active-users.json')
+      const dataWAU = require('../DB/weekly-active-users.json')
+      const dataMAU = require('../DB/monthly-active-users.json')
+      let changeDAU = []
+
+      for (let i = 0; i < allDataDAU.length; i++) {
+        if (allDataDAU[i - 7]) {
+          changeDAU.push(allDataDAU[i].doc_count - allDataDAU[i - 7].doc_count)
+        }
+      }
+
+      dispatch('a_makeActiveChartTable', {
+        title: '',
+        dataDAU: dataDAU,
+        changeDAU: changeDAU,
+        dataWAU: dataWAU,
+        dataMAU: dataMAU
+      })
+
+      dispatch('a_DAU', dataDAU)
+      dispatch('a_changeDAU', changeDAU)
+      dispatch('a_WAU', dataWAU)
+      dispatch('a_MAU', dataMAU)
     },
 
-    a_DAU: (context, val) => {
-      context.commit('m_DAU', val)
-    },
-    a_changeDAU: (context, val) => {
-      context.commit('m_changeDAU', val)
-    },
-    a_WAU: (context, val) => {
-      context.commit('m_WAU', val)
-    },
-    a_MAU: (context, val) => {
-      context.commit('m_MAU', val)
-    },
-
+    // chart & table data 형식으로 만드는 action
     a_makeTotalChartTable: ({dispatch}, val) => {
       let chartDataSet = {
         title: '총 가입자 지표',
@@ -139,7 +162,7 @@ export const store = new Vuex.Store({
         },
         {
           label: '가입자',
-          backgroundColor: 'rgba(255, 206, 86, 0.2',
+          backgroundColor: 'rgba(255, 206, 86, 0.2)',
           borderColor: 'rgba(255, 206, 86,1)',
           borderWidth: 1,
           data: [...UserSignedupCount]
@@ -156,10 +179,10 @@ export const store = new Vuex.Store({
       dispatch('a_ChartData', chartDataSet)
       dispatch('a_TableData', tableDataSet)
     },
-    a_makeActiveChartTable: ({state, dispatch}, val) => {
+    a_makeActiveChartTable: ({dispatch}, val) => {
       // console.log('a_makeActiveChartTable', val)
       let chartDataSet = {
-        title: `${val.title}` + 'MAU, WAU, MAU 지표',
+        title: `${val.title}MAU, WAU, MAU 지표`,
         labels: [],
         datasets: []
       }
@@ -218,7 +241,7 @@ export const store = new Vuex.Store({
         },
         {
           label: 'WAU',
-          backgroundColor: 'rgba(255, 206, 86, 0.2',
+          backgroundColor: 'rgba(255, 206, 86, 0.2)',
           borderColor: 'rgba(255, 206, 86,1)',
           borderWidth: 1,
           data: [...WAU]
@@ -232,23 +255,50 @@ export const store = new Vuex.Store({
         }
       )
 
+      let DAUminDate = ''
+      let DAUmaxDate = ''
+      let WAUminDate = ''
+      let WAUmaxDate = ''
+      let MAUminDate = ''
+      let MAUmaxDate = ''
+      for (let i = 0; i < DAU.length; i++) {
+        if (val.dataDAU[i].doc_count === Math.min(...DAU)) {
+          DAUminDate = val.dataDAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+        }
+        if (val.dataDAU[i].doc_count === Math.max(...DAU)) {
+          DAUmaxDate = val.dataDAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+        }
+        if (val.dataWAU[i].doc_count === Math.min(...WAU)) {
+          WAUminDate = val.dataWAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+        }
+        if (val.dataWAU[i].doc_count === Math.max(...WAU)) {
+          WAUmaxDate = val.dataWAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+        }
+        if (val.dataMAU[i].doc_count === Math.min(...MAU)) {
+          MAUminDate = val.dataMAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+        }
+        if (val.dataMAU[i].doc_count === Math.max(...MAU)) {
+          MAUmaxDate = val.dataMAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+        }
+      }
+
       activeTableDataSet.data.push(
         {
           name: 'DAU',
-          min: Math.min(...DAU),
-          max: Math.max(...DAU),
+          min: Math.min(...DAU) + ` (${DAUminDate})`,
+          max: Math.max(...DAU) + ` (${DAUmaxDate})`,
           avg: Math.floor(sumDAU / DAU.length)
         },
         {
           name: 'WAU',
-          min: Math.min(...WAU),
-          max: Math.max(...WAU),
+          min: Math.min(...WAU) + ` (${WAUminDate})`,
+          max: Math.max(...WAU) + ` (${WAUmaxDate})`,
           avg: Math.floor(sumWAU / WAU.length)
         },
         {
           name: 'MAU',
-          min: Math.min(...MAU),
-          max: Math.max(...MAU),
+          min: Math.min(...MAU) + ` (${MAUminDate})`,
+          max: Math.max(...MAU) + ` (${MAUmaxDate})`,
           avg: Math.floor(sumMAU / MAU.length)
         }
       )
@@ -258,263 +308,181 @@ export const store = new Vuex.Store({
       dispatch('a_ActiveTableData', activeTableDataSet)
     },
 
-    a_getTotalData: ({dispatch}) => {
-      let dataUserSignedup = require('../DB/user_signedup.json')
-      let dataUserDeleted = require('../DB/user_deleted.json')
-
-      dispatch('a_makeTotalChartTable', {
-        dataUserSignedup: dataUserSignedup,
-        dataUserDeleted: dataUserDeleted
-      })
-    },
-    a_getActiveData: ({dispatch, commit}) => {
-      let dataDAU = require('../DB/daily-active-users.json').slice(7, this.length)
-      let allDataDAU = require('../DB/daily-active-users.json')
-      let dataWAU = require('../DB/weekly-active-users.json')
-      let dataMAU = require('../DB/monthly-active-users.json')
-      let changeDAU = []
-
-      for (let i = 0; i < allDataDAU.length; i++) {
-        if (allDataDAU[i - 7] !== null && allDataDAU[i - 7] !== undefined) {
-          changeDAU.push(allDataDAU[i].doc_count - allDataDAU[i - 7].doc_count)
-        }
-      }
-
-      dispatch('a_makeActiveChartTable', {
-        title: '',
-        dataDAU: dataDAU,
-        changeDAU: changeDAU,
-        dataWAU: dataWAU,
-        dataMAU: dataMAU
-      })
-
-      dispatch('a_DAU', dataDAU)
-      // dispatch('a_AllDAU', allDataDAU)
-      dispatch('a_changeDAU', changeDAU)
-      dispatch('a_WAU', dataWAU)
-      dispatch('a_MAU', dataMAU)
-    },
-
     // filter Action
     a_changeData: ({state, dispatch}, val) => {
-      console.log('뷰엑스 왔다', val)
       if (val.select_user === '' && val.select_country === '') {
         dispatch('a_DateChange', {
           title: '',
           input_start_date: val.input_start_date,
           input_end_date: val.input_end_date,
-          DAU: state.DAU,
+          dataDAU: state.DAU,
           changeDAU: state.changeDAU,
-          WAU: state.WAU,
-          MAU: state.MAU
+          dataWAU: state.WAU,
+          dataMAU: state.MAU
         })
       } else if (val.select_user !== '') {
-        // country 조건을 초기화 시켜야 함
-        dispatch('a_UserChange', {
-          input_start_date: val.input_start_date,
-          input_end_date: val.input_end_date,
-          select_user: val.select_user
-        })
+        dispatch('a_UserChange', val)
       } else if (val.select_country !== '') {
-        dispatch('a_CountryChange', {
-          input_start_date: val.input_start_date,
-          input_end_date: val.input_end_date,
-          select_user: val.select_country
-        })
+        dispatch('a_CountryChange', val)
       }
     },
 
-    a_DateChange: ({state, dispatch}, val) => {
-      let sliceDAU = []
-      let sliceChangeDAU = []
-      let sliceWAU = []
-      let sliceMAU = []
+    // 시작 날짜와 종료 날짜에 해당하는 data를 잘라주는 action
+    a_DateChange: ({dispatch}, val) => {
+      let sliceData = {
+        title: val.title,
+        dataDAU: [],
+        changeDAU: [],
+        dataWAU: [],
+        dataMAU: []
+      }
       let startIndex = ''
       let endIndex = ''
 
-      for (let i = 0; i < val.DAU.length; i++) {
-        if (val.DAU[i].key === val.input_start_date.split('-').join('')) {
+      for (let i = 0; i < val.dataDAU.length; i++) {
+        if (val.dataDAU[i].key === val.input_start_date.split('-').join('')) {
           startIndex = i
         }
-        if (val.DAU[i].key === val.input_end_date.split('-').join('')) {
+        if (val.dataDAU[i].key === val.input_end_date.split('-').join('')) {
           endIndex = i + 1
         }
       }
       if (endIndex === '') {
-        sliceDAU.push(...val.DAU.slice(startIndex))
-        sliceChangeDAU.push(...val.changeDAU.slice(startIndex))
-        sliceWAU.push(...val.WAU.slice(startIndex))
-        sliceMAU.push(...val.MAU.slice(startIndex))
+        sliceData.dataDAU.push(...val.dataDAU.slice(startIndex))
+        sliceData.changeDAU.push(...val.changeDAU.slice(startIndex))
+        sliceData.dataWAU.push(...val.dataWAU.slice(startIndex))
+        sliceData.dataMAU.push(...val.dataMAU.slice(startIndex))
       } else if (startIndex === '') {
-        sliceDAU.push(...val.DAU.slice(0, endIndex))
-        sliceChangeDAU.push(...val.changeDAU.slice(0, endIndex))
-        sliceWAU.push(...val.WAU.slice(0, endIndex))
-        sliceMAU.push(...val.MAU.slice(0, endIndex))
+        sliceData.dataDAU.push(...val.dataDAU.slice(0, endIndex))
+        sliceData.changeDAU.push(...val.changeDAU.slice(0, endIndex))
+        sliceData.dataWAU.push(...val.dataWAU.slice(0, endIndex))
+        sliceData.dataMAU.push(...val.dataMAU.slice(0, endIndex))
       } else {
-        sliceDAU.push(...val.DAU.slice(startIndex, endIndex))
-        sliceChangeDAU.push(...val.changeDAU.slice(startIndex, endIndex))
-        sliceWAU.push(...val.WAU.slice(startIndex, endIndex))
-        sliceMAU.push(...val.MAU.slice(startIndex, endIndex))
+        sliceData.dataDAU.push(...val.dataDAU.slice(startIndex, endIndex))
+        sliceData.changeDAU.push(...val.changeDAU.slice(startIndex, endIndex))
+        sliceData.dataWAU.push(...val.dataWAU.slice(startIndex, endIndex))
+        sliceData.dataMAU.push(...val.dataMAU.slice(startIndex, endIndex))
       }
 
-      dispatch('a_makeActiveChartTable', {
-        title: val.title,
-        dataDAU: sliceDAU,
-        changeDAU: sliceChangeDAU,
-        dataWAU: sliceWAU,
-        dataMAU: sliceMAU
-      })
+      dispatch('a_makeActiveChartTable', sliceData)
     },
+    // user, country data 가져오는 action
     a_UserChange: ({dispatch}, val) => {
+      let userData = {
+        title: '',
+        input_start_date: val.input_start_date,
+        input_end_date: val.input_end_date,
+        dataDAU: [],
+        changeDAU: [],
+        dataWAU: [],
+        dataMAU: []
+      }
+
       if (val.select_user === 'Parent') {
-        let dataDAUparent = require('../DB/dau_parent.json')
-        let dataWAUparent = require('../DB/wau_parent.json')
-        let dataMAUparent = require('../DB/mau_parent.json')
-        let changeDAU = []
+        const dataDAUparent = require('../DB/dau_parent.json')
+        userData.dataDAU = dataDAUparent.slice(7, this.length)
+        userData.dataWAU = require('../DB/wau_parent.json')
+        userData.dataMAU = require('../DB/mau_parent.json')
+        userData.title = 'Parent '
         for (let i = 0; i < dataDAUparent.length; i++) {
-          if (dataDAUparent[i - 7] !== null && dataDAUparent[i - 7] !== undefined) {
-            changeDAU.push(dataDAUparent[i].doc_count - dataDAUparent[i - 7].doc_count)
+          if (dataDAUparent[i - 7]) {
+            userData.changeDAU.push(dataDAUparent[i].doc_count - dataDAUparent[i - 7].doc_count)
           }
         }
         if (val.input_start_date === '' && val.input_end_date === '') {
-          dispatch('a_makeActiveChartTable', {
-            title: 'Parent ',
-            dataDAU: dataDAUparent.slice(7, this.length),
-            changeDAU: changeDAU,
-            dataWAU: dataWAUparent,
-            dataMAU: dataMAUparent
-          })
+          dispatch('a_makeActiveChartTable', userData)
         } else {
-          dispatch('a_DateChange', {
-            title: 'Parent ',
-            input_start_date: val.input_start_date,
-            input_end_date: val.input_end_date,
-            DAU: dataDAUparent.slice(7, this.length),
-            changeDAU: changeDAU,
-            WAU: dataWAUparent,
-            MAU: dataMAUparent
-          })
+          dispatch('a_DateChange', userData)
         }
       } else if (val.select_user === 'Student') {
-        let dataDAUstudent = require('../DB/dau_student.json')
-        let dataWAUstudent = require('../DB/wau_student.json')
-        let dataMAUstudent = require('../DB/mau_student.json')
-        let changeDAU = []
+        const dataDAUstudent = require('../DB/dau_student.json')
+        userData.dataDAU = dataDAUstudent.slice(7, this.length)
+        userData.dataWAU = require('../DB/wau_student.json')
+        userData.dataMAU = require('../DB/mau_student.json')
+        userData.title = 'Student '
         for (let i = 0; i < dataDAUstudent.length; i++) {
-          if (dataDAUstudent[i - 7] !== null && dataDAUstudent[i - 7] !== undefined) {
-            changeDAU.push(dataDAUstudent[i].doc_count - dataDAUstudent[i - 7].doc_count)
+          if (dataDAUstudent[i - 7]) {
+            userData.changeDAU.push(dataDAUstudent[i].doc_count - dataDAUstudent[i - 7].doc_count)
           }
         }
         if (val.input_start_date === '' && val.input_end_date === '') {
-          dispatch('a_makeActiveChartTable', {
-            title: 'Student ',
-            dataDAU: dataDAUstudent.slice(7, this.length),
-            changeDAU: changeDAU,
-            dataWAU: dataWAUstudent,
-            dataMAU: dataMAUstudent
-          })
+          dispatch('a_makeActiveChartTable', userData)
         } else {
-          dispatch('a_DateChange', {
-            title: 'Student ',
-            input_start_date: val.input_start_date,
-            input_end_date: val.input_end_date,
-            DAU: dataDAUstudent.slice(7, this.length),
-            changeDAU: changeDAU,
-            WAU: dataWAUstudent,
-            MAU: dataMAUstudent
-          })
+          dispatch('a_DateChange', userData)
         }
       } else {
-        let dataDAUteacher = require('../DB/dau_teacher.json')
-        let dataWAUteacher = require('../DB/wau_teacher.json')
-        let dataMAUteacher = require('../DB/mau_teacher.json')
-        let changeDAU = []
+        const dataDAUteacher = require('../DB/dau_teacher.json')
+        userData.dataDAU = dataDAUteacher.slice(7, this.length)
+        userData.dataWAU = require('../DB/wau_teacher.json')
+        userData.dataMAU = require('../DB/mau_teacher.json')
+        userData.title = 'Teacher '
         for (let i = 0; i < dataDAUteacher.length; i++) {
-          if (dataDAUteacher[i - 7] !== null && dataDAUteacher[i - 7] !== undefined) {
-            changeDAU.push(dataDAUteacher[i].doc_count - dataDAUteacher[i - 7].doc_count)
+          if (dataDAUteacher[i - 7]) {
+            userData.changeDAU.push(dataDAUteacher[i].doc_count - dataDAUteacher[i - 7].doc_count)
           }
         }
         if (val.input_start_date === '' && val.input_end_date === '') {
-          dispatch('a_makeActiveChartTable', {
-            title: 'Teacher ',
-            dataDAU: dataDAUteacher.slice(7, this.length),
-            changeDAU: changeDAU,
-            dataWAU: dataWAUteacher,
-            dataMAU: dataMAUteacher
-          })
+          dispatch('a_makeActiveChartTable', userData)
         } else {
-          dispatch('a_DateChange', {
-            title: 'Teacher ',
-            input_start_date: val.input_start_date,
-            input_end_date: val.input_end_date,
-            DAU: dataDAUteacher.slice(7, this.length),
-            changeDAU: changeDAU,
-            WAU: dataWAUteacher,
-            MAU: dataMAUteacher
-          })
+          dispatch('a_DateChange', userData)
         }
       }
     },
     a_CountryChange: ({dispatch}, val) => {
-      if (val.select_user === 'Japan') {
-        let dataDAUjapan = require('../DB/dau_japan.json')
-        let dataWAUjapan = require('../DB/wau_japan.json')
-        let dataMAUjapan = require('../DB/mau_japan.json')
-        let changeDAU = []
+      let countryData = {
+        title: '',
+        input_start_date: val.input_start_date,
+        input_end_date: val.input_end_date,
+        dataDAU: [],
+        changeDAU: [],
+        dataWAU: [],
+        dataMAU: []
+      }
+
+      if (val.select_country === 'Japan') {
+        const dataDAUjapan = require('../DB/dau_japan.json')
+        countryData.dataDAU = dataDAUjapan.slice(7, this.length)
+        countryData.dataWAU = require('../DB/wau_japan.json')
+        countryData.dataMAU = require('../DB/mau_japan.json')
+        countryData.title = 'Japan '
         for (let i = 0; i < dataDAUjapan.length; i++) {
-          if (dataDAUjapan[i - 7] !== null && dataDAUjapan[i - 7] !== undefined) {
-            changeDAU.push(dataDAUjapan[i].doc_count - dataDAUjapan[i - 7].doc_count)
+          if (dataDAUjapan[i - 7]) {
+            countryData.changeDAU.push(dataDAUjapan[i].doc_count - dataDAUjapan[i - 7].doc_count)
           }
         }
         if (val.input_start_date === '' && val.input_end_date === '') {
-          dispatch('a_makeActiveChartTable', {
-            title: 'Japan ',
-            dataDAU: dataDAUjapan.slice(7, this.length),
-            changeDAU: changeDAU,
-            dataWAU: dataWAUjapan,
-            dataMAU: dataMAUjapan
-          })
+          dispatch('a_makeActiveChartTable', countryData)
         } else {
-          dispatch('a_DateChange', {
-            title: 'Japan ',
-            input_start_date: val.input_start_date,
-            input_end_date: val.input_end_date,
-            DAU: dataDAUjapan.slice(7, this.length),
-            changeDAU: changeDAU,
-            WAU: dataWAUjapan,
-            MAU: dataMAUjapan
-          })
+          dispatch('a_DateChange', countryData)
         }
-      } else if (val.select_user === 'Korea') {
-        let dataDAUkorea = require('../DB/dau_korea.json')
-        let dataWAUkorea = require('../DB/wau_korea.json')
-        let dataMAUkorea = require('../DB/mau_korea.json')
-        let changeDAU = []
+      } else if (val.select_country === 'Korea') {
+        const dataDAUkorea = require('../DB/dau_korea.json')
+        countryData.dataDAU = dataDAUkorea.slice(7, this.length)
+        countryData.dataWAU = require('../DB/wau_korea.json')
+        countryData.dataMAU = require('../DB/mau_korea.json')
+        countryData.title = 'Korea '
         for (let i = 0; i < dataDAUkorea.length; i++) {
-          if (dataDAUkorea[i - 7] !== null && dataDAUkorea[i - 7] !== undefined) {
-            changeDAU.push(dataDAUkorea[i].doc_count - dataDAUkorea[i - 7].doc_count)
+          if (dataDAUkorea[i - 7]) {
+            countryData.changeDAU.push(dataDAUkorea[i].doc_count - dataDAUkorea[i - 7].doc_count)
           }
         }
         if (val.input_start_date === '' && val.input_end_date === '') {
-          dispatch('a_makeActiveChartTable', {
-            title: 'Korea ',
-            dataDAU: dataDAUkorea.slice(7, this.length),
-            changeDAU: changeDAU,
-            dataWAU: dataWAUkorea,
-            dataMAU: dataMAUkorea
-          })
+          dispatch('a_makeActiveChartTable', countryData)
         } else {
-          dispatch('a_DateChange', {
-            title: 'Korea ',
-            input_start_date: val.input_start_date,
-            input_end_date: val.input_end_date,
-            DAU: dataDAUkorea.slice(7, this.length),
-            changeDAU: changeDAU,
-            WAU: dataWAUkorea,
-            MAU: dataMAUkorea
-          })
+          dispatch('a_DateChange', countryData)
         }
       }
+    },
+
+    // 로직 처리
+    makeChangeData: (data) => {
+      let changeData = []
+      for (let i = 0; i < data.length; i++) {
+        if (data[i - 7]) {
+          changeData.push(data[i].doc_count - data[i - 7].doc_count)
+        }
+      }
+      return changeData
     }
   }
 

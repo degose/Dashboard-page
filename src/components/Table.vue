@@ -27,4 +27,8 @@ export default {
 table,th,td {
   text-align: center;
 }
+
+thead {
+  background: #eee
+}
 </style>

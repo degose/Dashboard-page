@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <!-- <img src="./assets/logo.png"> -->
     <router-view />
   </div>
 </template>
@@ -17,13 +16,8 @@ export default {
   padding: 20px 0;
 }
 
-.section-sub-title {
-  /* text-align: center; */
+.bg-control {
+  padding: 10px 10%;
 }
-/* #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-} */
+
 </style>

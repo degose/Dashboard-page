@@ -2,7 +2,7 @@
   <div class="container">
     <h2 class="section-title">활성화 사용자 지표</h2>
     <data-chart :chart-data="isChartData"></data-chart>
-    <active-user-filter :filter-data="isDAU" :filter-action="a_getActiveData"></active-user-filter>
+    <active-user-filter></active-user-filter>
     <data-table :table-data="isActiveTableData"></data-table>
     <data-table :table-data="isTableData"></data-table>
   </div>
@@ -21,34 +21,14 @@ export default {
     DataTable,
     ActiveUserFilter
   },
-  data () {
-    return {
-      chartData: null
-    }
-  },
   created () {
     this.a_getActiveData()
-    // this.fetchChartData()
-    // console.log(this.isChartData)
-  },
-  mounted () {
-    // this.$store.watch(
-    //   (state) => {
-    //     return this.$store.getters.isChartData
-    //   },
-    //   (val) => {
-    //   },
-    //   {
-    //     deep: true
-    //   }
-    // )
   },
   computed: {
-    ...mapGetters(['isActiveTableData', 'isChartData', 'isTableData', 'isDAU'])
+    ...mapGetters(['isActiveTableData', 'isChartData', 'isTableData'])
   },
   methods: {
     ...mapActions(['a_getActiveData'])
-
   }
 
 }

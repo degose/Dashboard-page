@@ -1,11 +1,7 @@
 <template>
   <div class="box">
     <h3 class="section-sub-title">{{ chartData.title }}</h3>
-    <line-chart :data="this.chartData"></line-chart>
-    <!-- <bar-chart :data="this.chartData"></bar-chart> -->
-    <!-- <line-chart :options="{responsive: false, maintainAspectRatio: false}"
-  :width="400"
-  :height="200"></line-chart> -->
+    <line-chart :data="this.chartData" :height="150"></line-chart>
   </div>
 </template>
 
@@ -18,18 +14,6 @@ export default {
     LineChart
   },
   props: ['chartData']
-  // mounted () {
-  //   this.$store.watch(
-  //     (state) => {
-  //       return this.$store.getters.isChartData
-  //     },
-  //     (val) => {
-  //     },
-  //     {
-  //       deep: true
-  //     }
-  //   )
-  // }
 }
 </script>
 
