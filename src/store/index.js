@@ -4,12 +4,13 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
-  // strict: true,
   state: {
     ChartData: {},
     TableData: {},
     ActiveTableData: [],
     NotiMessage: '',
+
+    FilterData: {},
 
     UserSignedup: [],
     UserDeleted: [],
@@ -32,6 +33,9 @@ export const store = new Vuex.Store({
     isNotiMessage: (state) => {
       return state.NotiMessage
     },
+    isFilterData: (state) => {
+      return state.FilterData
+    },
     isUserSignedup: (state) => {
       return state.UserSignedup
     },
@@ -51,6 +55,21 @@ export const store = new Vuex.Store({
     },
     m_NotiMessage: (state, payload) => {
       state.NotiMessage = payload
+    },
+    m_FilterData: (state, payload) => {
+      state.FilterData = payload
+    },
+    m_inputStartDate: (state, payload) => {
+      state.FilterData.input_start_date = payload
+    },
+    m_inputEndDate: (state, payload) => {
+      state.FilterData.input_end_date = payload
+    },
+    m_selectUser: (state, payload) => {
+      state.FilterData.select_user = payload
+    },
+    m_selectCountry: (state, payload) => {
+      state.FilterData.select_country = payload
     },
 
     m_UserSignedup: (state, payload) => {
@@ -89,6 +108,21 @@ export const store = new Vuex.Store({
     a_NotiMessage: ({commit}, val) => {
       commit('m_NotiMessage', val)
     },
+    a_FilterData: ({commit}, val) => {
+      commit('m_FilterData', val)
+    },
+    a_inputStartDate: ({commit}, val) => {
+      commit('m_inputStartDate', val)
+    },
+    a_inputEndDate: ({commit}, val) => {
+      commit('m_inputEndDate', val)
+    },
+    a_selectUser: ({commit}, val) => {
+      commit('m_selectUser', val)
+    },
+    a_selectCountry: ({commit}, val) => {
+      commit('m_selectCountry', val)
+    },
     a_UserSignedup: ({commit}, val) => {
       commit('m_UserSignedup', val)
     },
@@ -123,6 +157,8 @@ export const store = new Vuex.Store({
 
       dispatch('a_UserSignedup', dataUserSignedup)
       dispatch('a_UserDeleted', dataUserDeleted)
+      dispatch('a_inputStartDate', '')
+      dispatch('a_inputEndDate', '')
     },
     a_getActiveData: ({state, dispatch, commit}) => {
       const dataDAU = require('../DB/daily-active-users.json').slice(7, this.length)
@@ -146,6 +182,10 @@ export const store = new Vuex.Store({
       dispatch('a_changeDAU', changeDAU)
       dispatch('a_WAU', dataWAU)
       dispatch('a_MAU', dataMAU)
+      dispatch('a_inputStartDate', '')
+      dispatch('a_inputEndDate', '')
+      dispatch('a_selectUser', '')
+      dispatch('a_selectCountry', '')
     },
 
     // chart & table data 형식으로 만드는 action
@@ -331,39 +371,45 @@ export const store = new Vuex.Store({
     },
 
     // filter Action
-    a_changeData: ({state, dispatch}, val) => {
-      if (val.select_user === '' && val.select_country === '') {
+    a_changeData: ({state, dispatch}, payload) => {
+      dispatch('checkInputData', {
+        allData: state.DAU,
+        payload: payload
+      })
+      if (state.FilterData.select_user === '' && state.FilterData.select_country === '') {
         // 선택된 user 나 country 가 없으면 총 data에서 바뀐 date만 전달
         dispatch('a_DateChange', {
           title: '',
-          input_start_date: val.input_start_date,
-          input_end_date: val.input_end_date,
+          input_start_date: state.FilterData.input_start_date,
+          input_end_date: state.FilterData.input_end_date,
           dataDAU: state.DAU,
           changeDAU: state.changeDAU,
           dataWAU: state.WAU,
           dataMAU: state.MAU
         })
-      } else if (val.select_user) {
-        dispatch('a_UserChange', val)
-      } else if (val.select_country) {
-        dispatch('a_CountryChange', val)
+      } else if (state.FilterData.select_user) {
+        dispatch('a_UserChange', state.FilterData)
+      } else if (state.FilterData.select_country) {
+        dispatch('a_CountryChange', state.FilterData)
       }
     },
-    a_changeTotalData: ({state, dispatch}, val) => {
+    a_changeTotalData: ({state, dispatch}) => {
+      dispatch('checkInputData', {
+        allData: state.UserSignedup
+      })
       let sliceData = {
         title: '',
         dataUserSignedup: [],
         dataUserDeleted: []
-
       }
       let startIndex = ''
       let endIndex = ''
 
       for (let i = 0; i < state.UserSignedup.length; i++) {
-        if (state.UserSignedup[i].key_as_string === val.input_start_date) {
+        if (state.UserSignedup[i].key_as_string === state.FilterData.input_start_date) {
           startIndex = i
         }
-        if (state.UserSignedup[i].key_as_string === val.input_end_date) {
+        if (state.UserSignedup[i].key_as_string === state.FilterData.input_end_date) {
           endIndex = i + 1
         }
       }
@@ -527,6 +573,36 @@ export const store = new Vuex.Store({
         }
       }
       dispatch('a_makeChangeData', changeData)
+    },
+    // input & select 핸들링, 에러 메세지
+    checkInputData: ({state, dispatch}, data) => {
+      // user, country 중 하나만 선택하게 설정
+      if (data.payload === 'user') {
+        dispatch('a_selectCountry', '')
+      } else if (data.payload === 'country') {
+        dispatch('a_selectUser', '')
+      }
+      // 시작 날짜와 종료 날짜 안내 메세지
+      if (state.FilterData.input_end_date !== '' && state.FilterData.input_start_date > state.FilterData.input_end_date) {
+        dispatch('a_NotiMessage', '시작 날짜가 종료 날짜보다 큽니다.')
+        dispatch('a_inputEndDate', '')
+      } else if (state.FilterData.input_end_date !== '' && state.FilterData.input_start_date === state.FilterData.input_end_date) {
+        dispatch('a_NotiMessage', '시작 날짜와 종료 날짜가 같습니다.')
+        dispatch('a_inputEndDate', '')
+      }
+      // 날짜 직접 입력 시 data에 없는 날짜를 선택한 경우
+      if (state.FilterData.input_start_date !== '') {
+        if (state.FilterData.input_start_date < data.allData[0].key_as_string || state.FilterData.input_start_date > data.allData[data.allData.length - 1].key_as_string) {
+          dispatch('a_NotiMessage', '해당 날짜는 데이터가 없습니다.')
+          dispatch('a_inputStartDate', '')
+        }
+      }
+      if (state.FilterData.input_end_date !== '') {
+        if (state.FilterData.input_end_date < data.allData[0].key_as_string || state.FilterData.input_end_date > data.allData[data.allData.length - 1].key_as_string) {
+          dispatch('a_NotiMessage', '해당 날짜는 데이터가 없습니다.')
+          dispatch('a_inputEndDate', '')
+        }
+      }
     }
   }
 
