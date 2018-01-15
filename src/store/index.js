@@ -4,12 +4,16 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
+  // strict: true,
   state: {
     ChartData: {},
     TableData: {},
     ActiveTableData: [],
     NotiMessage: '',
 
+    UserSignedup: [],
+    UserDeleted: [],
+    makeChangeData: [],
     DAU: [],
     changeDAU: [],
     WAU: [],
@@ -28,6 +32,9 @@ export const store = new Vuex.Store({
     isNotiMessage: (state) => {
       return state.NotiMessage
     },
+    isUserSignedup: (state) => {
+      return state.UserSignedup
+    },
     isDAU: (state) => {
       return state.DAU
     }
@@ -44,6 +51,16 @@ export const store = new Vuex.Store({
     },
     m_NotiMessage: (state, payload) => {
       state.NotiMessage = payload
+    },
+
+    m_UserSignedup: (state, payload) => {
+      state.UserSignedup = payload
+    },
+    m_UserDeleted: (state, payload) => {
+      state.UserDeleted = payload
+    },
+    m_makeChangeData: (state, payload) => {
+      state.makeChangeData = payload
     },
     m_DAU: (state, payload) => {
       state.DAU = payload
@@ -72,6 +89,15 @@ export const store = new Vuex.Store({
     a_NotiMessage: ({commit}, val) => {
       commit('m_NotiMessage', val)
     },
+    a_UserSignedup: ({commit}, val) => {
+      commit('m_UserSignedup', val)
+    },
+    a_UserDeleted: ({commit}, val) => {
+      commit('m_UserDeleted', val)
+    },
+    a_makeChangeData: ({commit}, val) => {
+      commit('m_makeChangeData', val)
+    },
     a_DAU: ({commit}, val) => {
       commit('m_DAU', val)
     },
@@ -94,19 +120,19 @@ export const store = new Vuex.Store({
         dataUserSignedup: dataUserSignedup,
         dataUserDeleted: dataUserDeleted
       })
+
+      dispatch('a_UserSignedup', dataUserSignedup)
+      dispatch('a_UserDeleted', dataUserDeleted)
     },
-    a_getActiveData: ({dispatch, commit}) => {
+    a_getActiveData: ({state, dispatch, commit}) => {
       const dataDAU = require('../DB/daily-active-users.json').slice(7, this.length)
       const allDataDAU = require('../DB/daily-active-users.json')
       const dataWAU = require('../DB/weekly-active-users.json')
       const dataMAU = require('../DB/monthly-active-users.json')
       let changeDAU = []
 
-      for (let i = 0; i < allDataDAU.length; i++) {
-        if (allDataDAU[i - 7]) {
-          changeDAU.push(allDataDAU[i].doc_count - allDataDAU[i - 7].doc_count)
-        }
-      }
+      dispatch('makeChangeData', allDataDAU)
+      changeDAU = state.makeChangeData
 
       dispatch('a_makeActiveChartTable', {
         title: '',
@@ -180,7 +206,6 @@ export const store = new Vuex.Store({
       dispatch('a_TableData', tableDataSet)
     },
     a_makeActiveChartTable: ({dispatch}, val) => {
-      // console.log('a_makeActiveChartTable', val)
       let chartDataSet = {
         title: `${val.title}MAU, WAU, MAU 지표`,
         labels: [],
@@ -255,12 +280,9 @@ export const store = new Vuex.Store({
         }
       )
 
-      let DAUminDate = ''
-      let DAUmaxDate = ''
-      let WAUminDate = ''
-      let WAUmaxDate = ''
-      let MAUminDate = ''
-      let MAUmaxDate = ''
+      // 최대 & 최소 값에 해당하는 날짜 적용
+      let DAUminDate, DAUmaxDate, WAUminDate, WAUmaxDate, MAUminDate, MAUmaxDate
+
       for (let i = 0; i < DAU.length; i++) {
         if (val.dataDAU[i].doc_count === Math.min(...DAU)) {
           DAUminDate = val.dataDAU[i].key.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
@@ -285,20 +307,20 @@ export const store = new Vuex.Store({
       activeTableDataSet.data.push(
         {
           name: 'DAU',
-          min: Math.min(...DAU) + ` (${DAUminDate})`,
           max: Math.max(...DAU) + ` (${DAUmaxDate})`,
+          min: Math.min(...DAU) + ` (${DAUminDate})`,
           avg: Math.floor(sumDAU / DAU.length)
         },
         {
           name: 'WAU',
-          min: Math.min(...WAU) + ` (${WAUminDate})`,
           max: Math.max(...WAU) + ` (${WAUmaxDate})`,
+          min: Math.min(...WAU) + ` (${WAUminDate})`,
           avg: Math.floor(sumWAU / WAU.length)
         },
         {
           name: 'MAU',
-          min: Math.min(...MAU) + ` (${MAUminDate})`,
           max: Math.max(...MAU) + ` (${MAUmaxDate})`,
+          min: Math.min(...MAU) + ` (${MAUminDate})`,
           avg: Math.floor(sumMAU / MAU.length)
         }
       )
@@ -311,6 +333,7 @@ export const store = new Vuex.Store({
     // filter Action
     a_changeData: ({state, dispatch}, val) => {
       if (val.select_user === '' && val.select_country === '') {
+        // 선택된 user 나 country 가 없으면 총 data에서 바뀐 date만 전달
         dispatch('a_DateChange', {
           title: '',
           input_start_date: val.input_start_date,
@@ -320,11 +343,42 @@ export const store = new Vuex.Store({
           dataWAU: state.WAU,
           dataMAU: state.MAU
         })
-      } else if (val.select_user !== '') {
+      } else if (val.select_user) {
         dispatch('a_UserChange', val)
-      } else if (val.select_country !== '') {
+      } else if (val.select_country) {
         dispatch('a_CountryChange', val)
       }
+    },
+    a_changeTotalData: ({state, dispatch}, val) => {
+      let sliceData = {
+        title: '',
+        dataUserSignedup: [],
+        dataUserDeleted: []
+
+      }
+      let startIndex = ''
+      let endIndex = ''
+
+      for (let i = 0; i < state.UserSignedup.length; i++) {
+        if (state.UserSignedup[i].key_as_string === val.input_start_date) {
+          startIndex = i
+        }
+        if (state.UserSignedup[i].key_as_string === val.input_end_date) {
+          endIndex = i + 1
+        }
+      }
+      if (endIndex === '') {
+        sliceData.dataUserSignedup.push(...state.UserSignedup.slice(startIndex))
+        sliceData.dataUserDeleted.push(...state.UserDeleted.slice(startIndex))
+      } else if (startIndex === '') {
+        sliceData.dataUserSignedup.push(...state.UserSignedup.slice(0, endIndex))
+        sliceData.dataUserDeleted.push(...state.UserDeleted.slice(0, endIndex))
+      } else {
+        sliceData.dataUserSignedup.push(...state.UserSignedup.slice(startIndex, endIndex))
+        sliceData.dataUserDeleted.push(...state.UserDeleted.slice(startIndex, endIndex))
+      }
+
+      dispatch('a_makeTotalChartTable', sliceData)
     },
 
     // 시작 날짜와 종료 날짜에 해당하는 data를 잘라주는 action
@@ -367,7 +421,7 @@ export const store = new Vuex.Store({
       dispatch('a_makeActiveChartTable', sliceData)
     },
     // user, country data 가져오는 action
-    a_UserChange: ({dispatch}, val) => {
+    a_UserChange: ({state, dispatch}, val) => {
       let userData = {
         title: '',
         input_start_date: val.input_start_date,
@@ -384,11 +438,9 @@ export const store = new Vuex.Store({
         userData.dataWAU = require('../DB/wau_parent.json')
         userData.dataMAU = require('../DB/mau_parent.json')
         userData.title = 'Parent '
-        for (let i = 0; i < dataDAUparent.length; i++) {
-          if (dataDAUparent[i - 7]) {
-            userData.changeDAU.push(dataDAUparent[i].doc_count - dataDAUparent[i - 7].doc_count)
-          }
-        }
+        dispatch('makeChangeData', dataDAUparent)
+        userData.changeDAU = state.makeChangeData
+
         if (val.input_start_date === '' && val.input_end_date === '') {
           dispatch('a_makeActiveChartTable', userData)
         } else {
@@ -400,11 +452,9 @@ export const store = new Vuex.Store({
         userData.dataWAU = require('../DB/wau_student.json')
         userData.dataMAU = require('../DB/mau_student.json')
         userData.title = 'Student '
-        for (let i = 0; i < dataDAUstudent.length; i++) {
-          if (dataDAUstudent[i - 7]) {
-            userData.changeDAU.push(dataDAUstudent[i].doc_count - dataDAUstudent[i - 7].doc_count)
-          }
-        }
+        dispatch('makeChangeData', dataDAUstudent)
+        userData.changeDAU = state.makeChangeData
+
         if (val.input_start_date === '' && val.input_end_date === '') {
           dispatch('a_makeActiveChartTable', userData)
         } else {
@@ -416,11 +466,9 @@ export const store = new Vuex.Store({
         userData.dataWAU = require('../DB/wau_teacher.json')
         userData.dataMAU = require('../DB/mau_teacher.json')
         userData.title = 'Teacher '
-        for (let i = 0; i < dataDAUteacher.length; i++) {
-          if (dataDAUteacher[i - 7]) {
-            userData.changeDAU.push(dataDAUteacher[i].doc_count - dataDAUteacher[i - 7].doc_count)
-          }
-        }
+        dispatch('makeChangeData', dataDAUteacher)
+        userData.changeDAU = state.makeChangeData
+
         if (val.input_start_date === '' && val.input_end_date === '') {
           dispatch('a_makeActiveChartTable', userData)
         } else {
@@ -428,7 +476,7 @@ export const store = new Vuex.Store({
         }
       }
     },
-    a_CountryChange: ({dispatch}, val) => {
+    a_CountryChange: ({state, dispatch}, val) => {
       let countryData = {
         title: '',
         input_start_date: val.input_start_date,
@@ -445,11 +493,9 @@ export const store = new Vuex.Store({
         countryData.dataWAU = require('../DB/wau_japan.json')
         countryData.dataMAU = require('../DB/mau_japan.json')
         countryData.title = 'Japan '
-        for (let i = 0; i < dataDAUjapan.length; i++) {
-          if (dataDAUjapan[i - 7]) {
-            countryData.changeDAU.push(dataDAUjapan[i].doc_count - dataDAUjapan[i - 7].doc_count)
-          }
-        }
+        dispatch('makeChangeData', dataDAUjapan)
+        countryData.changeDAU = state.makeChangeData
+
         if (val.input_start_date === '' && val.input_end_date === '') {
           dispatch('a_makeActiveChartTable', countryData)
         } else {
@@ -461,11 +507,9 @@ export const store = new Vuex.Store({
         countryData.dataWAU = require('../DB/wau_korea.json')
         countryData.dataMAU = require('../DB/mau_korea.json')
         countryData.title = 'Korea '
-        for (let i = 0; i < dataDAUkorea.length; i++) {
-          if (dataDAUkorea[i - 7]) {
-            countryData.changeDAU.push(dataDAUkorea[i].doc_count - dataDAUkorea[i - 7].doc_count)
-          }
-        }
+        dispatch('makeChangeData', dataDAUkorea)
+        countryData.changeDAU = state.makeChangeData
+
         if (val.input_start_date === '' && val.input_end_date === '') {
           dispatch('a_makeActiveChartTable', countryData)
         } else {
@@ -474,15 +518,15 @@ export const store = new Vuex.Store({
       }
     },
 
-    // 로직 처리
-    makeChangeData: (data) => {
+    // DAU 전주대비 변화 로직
+    makeChangeData: ({dispatch}, data) => {
       let changeData = []
       for (let i = 0; i < data.length; i++) {
         if (data[i - 7]) {
           changeData.push(data[i].doc_count - data[i - 7].doc_count)
         }
       }
-      return changeData
+      dispatch('a_makeChangeData', changeData)
     }
   }
 

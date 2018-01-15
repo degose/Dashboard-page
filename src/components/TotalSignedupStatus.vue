@@ -2,6 +2,7 @@
   <div class="container">
     <h2 class="section-title">총 가입자 지표</h2>
     <data-chart :chart-data="this.isChartData"></data-chart>
+    <total-signedup-filter></total-signedup-filter>
     <data-table :table-data="this.isTableData"></data-table>
   </div>
 </template>
@@ -9,13 +10,15 @@
 <script>
 import DataChart from './Chart'
 import DataTable from './Table'
+import TotalSignedupFilter from './TotalSignedupFilter'
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'TotalSignedupStatus',
   components: {
     DataChart,
-    DataTable
+    DataTable,
+    TotalSignedupFilter
   },
   created () {
     this.a_getTotalData()

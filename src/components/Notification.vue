@@ -13,8 +13,6 @@ import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'Notification',
-  components: {
-  },
   computed: {
     ...mapGetters(['isNotiMessage'])
   },
