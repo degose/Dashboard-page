@@ -9,11 +9,11 @@ export const store = new Vuex.Store({
     TableData: {},
     ActiveTableData: [],
     NotiMessage: '',
-
     FilterData: {},
 
     UserSignedup: [],
     UserDeleted: [],
+
     makeChangeData: [],
     DAU: [],
     changeDAU: [],
@@ -371,6 +371,7 @@ export const store = new Vuex.Store({
     },
 
     // filter Action
+    // 활성화 사용자 지표에서 filter가 적용될 경우
     a_changeData: ({state, dispatch}, payload) => {
       dispatch('checkInputData', {
         allData: state.DAU,
@@ -393,6 +394,7 @@ export const store = new Vuex.Store({
         dispatch('a_CountryChange', state.FilterData)
       }
     },
+    // 총 가입자 지표에서 filter가 적용될 경우
     a_changeTotalData: ({state, dispatch}) => {
       dispatch('checkInputData', {
         allData: state.UserSignedup
